@@ -1,4 +1,4 @@
-name: Deploy master new
+name: Deploy master
 
 env:
   FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
