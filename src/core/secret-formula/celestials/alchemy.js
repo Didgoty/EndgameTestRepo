@@ -398,7 +398,7 @@ export const alchemyResources = {
     symbol: "Λ",
     isBaseResource: false,
     // Somewhat ugly number to make this show 75.00% at cap
-    effect: amount => amount.div(amount.add(8333.33),
+    effect: amount => amount.div(amount.add(8333.33)),
     tier: 4,
     uiOrder: 4,
     unlockedAt: 21,
