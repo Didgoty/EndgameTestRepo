@@ -43,7 +43,7 @@ export const alchemyResources = {
     name: "Replication",
     symbol: "Ξ",
     isBaseResource: true,
-    effect: amount => Decimal.pow10(amount.div(500),
+    effect: amount => Decimal.pow10(amount.div(500)),
     tier: 1,
     uiOrder: 4,
     unlockedAt: 5,
