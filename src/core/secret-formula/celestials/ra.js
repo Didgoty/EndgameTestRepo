@@ -7,8 +7,8 @@ export const ra = {
       chunkGain: "Eternity Points",
       memoryGain: "current RM",
       requiredUnlock: () => undefined,
-      rawMemoryChunksPerSecond: () => 4 * Math.pow(Currency.eternityPoints.value.pLog10() / 5e3, 3.5),
-      memoryProductionMultiplier: () => Ra.unlocks.teresaXP.effectOrDefault(1)
+      rawMemoryChunksPerSecond: () => Decimal.pow(Currency.eternityPoints.value.log10().div(5e3), 3.5).mul(4),
+      memoryProductionMultiplier: () => Ra.unlocks.teresaXP.effectOrDefault(new Decimal(1))
     },
     effarig: {
       id: "effarig",
@@ -17,8 +17,8 @@ export const ra = {
       chunkGain: "Relic Shards gained",
       memoryGain: "best Glyph level",
       requiredUnlock: () => Ra.unlocks.effarigUnlock,
-      rawMemoryChunksPerSecond: () => 4 * Math.pow(Effarig.shardsGained, 0.175),
-      memoryProductionMultiplier: () => Ra.unlocks.effarigXP.effectOrDefault(1)
+      rawMemoryChunksPerSecond: () => Decimal.pow(Effarig.shardsGained, 0.175).mul(4),
+      memoryProductionMultiplier: () => Ra.unlocks.effarigXP.effectOrDefault(new Decimal(1))
     },
     enslaved: {
       id: "enslaved",
@@ -27,8 +27,8 @@ export const ra = {
       chunkGain: "Time Shards",
       memoryGain: "total time played",
       requiredUnlock: () => Ra.unlocks.enslavedUnlock,
-      rawMemoryChunksPerSecond: () => 4 * Math.pow(Currency.timeShards.value.pLog10() / 5e4, 2.5),
-      memoryProductionMultiplier: () => Ra.unlocks.enslavedXP.effectOrDefault(1)
+      rawMemoryChunksPerSecond: () => Decimal.pow(Currency.timeShards.value.log10().div(5e4), 2.5).mul(4),
+      memoryProductionMultiplier: () => Ra.unlocks.enslavedXP.effectOrDefault(new Decimal(1))
     },
     v: {
       id: "v",
@@ -37,8 +37,8 @@ export const ra = {
       chunkGain: "Infinity Power",
       memoryGain: "total Memory levels",
       requiredUnlock: () => Ra.unlocks.vUnlock,
-      rawMemoryChunksPerSecond: () => 4 * Math.pow(Currency.infinityPower.value.pLog10() / 1e6, 1.875),
-      memoryProductionMultiplier: () => Ra.unlocks.vXP.effectOrDefault(1)
+      rawMemoryChunksPerSecond: () => Decimal.pow(Currency.infinityPower.value.log10().div(1e6), 1.875).mul(4),
+      memoryProductionMultiplier: () => Ra.unlocks.vXP.effectOrDefault(new Decimal(1))
     }
   },
   unlocks: {
@@ -63,7 +63,7 @@ export const ra = {
     teresaXP: {
       id: 2,
       reward: "All Memory Chunks produce more Memories based on Reality Machines",
-      effect: () => 1 + Math.pow(Currency.realityMachines.value.pLog10() / 100, 0.5),
+      effect: () => Decimal.pow(Currency.realityMachines.value.log10().div(100), 0.5).add(1),
       pet: "teresa",
       level: 5,
       displayIcon: `Ϟ`
@@ -119,7 +119,7 @@ export const ra = {
     effarigXP: {
       id: 9,
       reward: "All Memory Chunks produce more Memories based on highest Glyph level",
-      effect: () => 1 + player.records.bestReality.glyphLevel / 7000,
+      effect: () => player.records.bestReality.glyphLevel.div(7000).add(1),
       pet: "effarig",
       level: 5,
       displayIcon: `<span class="fas fa-clone"></span>`
@@ -141,7 +141,7 @@ export const ra = {
     relicShardGlyphLevelBoost: {
       id: 12,
       reward: "Glyph level is increased based on Relic Shards gained",
-      effect: () => 100 * Math.pow(Math.log10(Math.max(Effarig.shardsGained, 1)), 2),
+      effect: () => Decimal.pow(Decimal.log10(Decimal.max(Effarig.shardsGained, 1)), 2).mul(100),
       pet: "effarig",
       level: 15,
       displayIcon: `<span class="fas fa-fire"></span>`
@@ -150,7 +150,7 @@ export const ra = {
       id: 13,
       reward: () => `Glyphs are always generated with ${formatPercents(1)} rarity and
         Glyph Sacrifice gain is raised to a power based on Relic Shards`,
-      effect: () => 1 + Effarig.maxRarityBoost / 100,
+      effect: () => Effarig.maxRarityBoost.div(100).add(1),
       pet: "effarig",
       level: 25,
       displayIcon: `<i class="fas fa-ankh"></i>`
@@ -167,8 +167,8 @@ export const ra = {
       id: 15,
       reward: "Stored game time is amplified and you can store more real time, increasing with Nameless levels",
       effects: {
-        gameTimeAmplification: () => Math.pow(20, Math.clampMax(Ra.pets.enslaved.level, Ra.levelCap)),
-        realTimeCap: () => 1000 * 3600 * Ra.pets.enslaved.level,
+        gameTimeAmplification: () => Decimal.pow(20, Math.clampMax(Ra.pets.enslaved.level, Ra.levelCap)),
+        realTimeCap: () => Ra.pets.enslaved.level.mul(3.6e6),
       },
       pet: "enslaved",
       level: 2,
@@ -178,7 +178,7 @@ export const ra = {
     enslavedXP: {
       id: 16,
       reward: "All Memory Chunks produce more Memories based on total time played",
-      effect: () => 1 + Math.log10(player.records.totalTimePlayed) / 200,
+      effect: () => Decimal.log10(player.records.totalTimePlayed).div(200).add(1),
       pet: "enslaved",
       level: 5,
       displayIcon: `<span class="fas fa-stopwatch"></span>`
@@ -202,7 +202,7 @@ export const ra = {
     peakGamespeedDT: {
       id: 19,
       reward: "Gain more Dilated Time based on peak game speed in each Reality",
-      effect: () => Math.max(Math.pow(Math.log10(player.celestials.ra.peakGamespeed) - 90, 3), 1),
+      effect: () => Decimal.max(Decimal.pow(Decimal.log10(player.celestials.ra.peakGamespeed).sub(90), 3), 1),
       pet: "enslaved",
       level: 15,
       displayIcon: `<span class="fas fa-tachometer-alt"></span>`,
@@ -241,7 +241,7 @@ export const ra = {
     vXP: {
       id: 23,
       reward: "All Memory Chunks produce more Memories based on total Celestial levels.",
-      effect: () => 1 + Ra.totalPetLevel / 50,
+      effect: () => new Decimal(Ra.totalPetLevel.div(50).add(1)),
       pet: "v",
       level: 5,
       displayIcon: `<span class="fas fa-book"></span>`
@@ -260,14 +260,14 @@ export const ra = {
       id: 25,
       reward: "Time Theorems boost all forms of continuous non-dimension production",
       effects: {
-        ttGen: () => Math.pow(10, 5 * Ra.theoremBoostFactor()),
-        eternity: () => Math.pow(10, 2 * Ra.theoremBoostFactor()),
-        infinity: () => Math.pow(10, 15 * Ra.theoremBoostFactor()),
-        replicanti: () => Math.pow(10, 20 * Ra.theoremBoostFactor()),
-        dilatedTime: () => Math.pow(10, 3 * Ra.theoremBoostFactor()),
-        memories: () => 1 + Ra.theoremBoostFactor() / 50,
-        memoryChunks: () => 1 + Ra.theoremBoostFactor() / 50,
-        autoPrestige: () => 1 + 2.4 * Ra.theoremBoostFactor()
+        ttGen: () => Decimal.pow(10, Ra.theoremBoostFactor().mul(5)),
+        eternity: () => Decimal.pow(10, Ra.theoremBoostFactor().mul(2)),
+        infinity: () => Decimal.pow(10, Ra.theoremBoostFactor().mul(15)),
+        replicanti: () => Decimal.pow(10, Ra.theoremBoostFactor().mul(20)),
+        dilatedTime: () => Decimal.pow(10, Ra.theoremBoostFactor().mul(3)),
+        memories: () => Ra.theoremBoostFactor().div(50).add(1),
+        memoryChunks: () => Ra.theoremBoostFactor().div(50).add(1),
+        autoPrestige: () => Ra.theoremBoostFactor().mul(2.4).add(1)
       },
       pet: "v",
       level: 10,
