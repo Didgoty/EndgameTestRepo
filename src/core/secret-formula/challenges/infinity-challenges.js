@@ -28,23 +28,22 @@ export const infinityChallenges = [
     unlockAM: DC.E11000,
   },
   {
-    id: 3,
+     id: 3,
     description: () =>
       `Tickspeed upgrades are always ${formatX(1)}. For every Tickspeed upgrade purchase, you instead get a static
       multiplier on all Antimatter Dimensions which increases based on Antimatter Galaxies.`,
     goal: DC.E5000,
     isQuickResettable: false,
-    effect: () => Decimal.pow(1.05 + (player.galaxies * 0.005), player.totalTickBought),
+    effect: () => Decimal.pow(player.galaxies.times(0.005).add(1.05), player.totalTickBought),
     formatEffect: value => formatX(value, 2, 2),
     reward: {
       description: `Antimatter Dimension multiplier based on Antimatter Galaxies and Tickspeed purchases`,
       effect: () => (Laitela.continuumActive
-        ? Decimal.pow(1.05 + (player.galaxies * 0.005), Tickspeed.continuumValue)
-        : Decimal.pow(1.05 + (player.galaxies * 0.005), player.totalTickBought)),
+        ? Decimal.pow(player.galaxies.times(0.005).add(1.05), Tickspeed.continuumValue)
+        : Decimal.pow(player.galaxies.times(0.005).add(1.05), player.totalTickBought)),
       formatEffect: value => formatX(value, 2, 2),
     },
     unlockAM: DC.E12000,
-  },
   {
     id: 4,
     description: () =>
@@ -122,7 +121,7 @@ export const infinityChallenges = [
     goal: DC.E27000,
     isQuickResettable: true,
     effect: () => DC.D0_8446303389034288.pow(
-      Math.max(0, player.records.thisInfinity.time - player.records.thisInfinity.lastBuyTime)),
+      Decimal.max(0, player.records.thisInfinity.time - player.records.thisInfinity.lastBuyTime)),
     reward: {
       description:
         "You get a multiplier to AD 2-7 based on 1st and 8th AD multipliers.",
