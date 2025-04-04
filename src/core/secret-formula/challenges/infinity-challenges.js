@@ -44,6 +44,7 @@ export const infinityChallenges = [
       formatEffect: value => formatX(value, 2, 2),
     },
     unlockAM: DC.E12000,
+  },
   {
     id: 4,
     description: () =>
