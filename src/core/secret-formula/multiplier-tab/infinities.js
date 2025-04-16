@@ -23,13 +23,13 @@ export const infinities = {
     isActive: () => Achievement(87).isUnlocked,
     icon: MultiplierTabIcons.ACHIEVEMENT,
   },
-  timeStudy: {
+  timeStudy32: {
     name: "Time Study 32",
     multValue: () => TimeStudy(32).effectOrDefault(1),
     isActive: () => TimeStudy(32).isBought,
     icon: MultiplierTabIcons.TIME_STUDY,
   },
-  timeStudy2: {
+  timeStudy191: {
     name: "Time Study 191",
     multValue: 2,
     isActive: () => TimeStudy(191).isBought,
