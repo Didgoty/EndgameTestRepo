@@ -625,7 +625,8 @@ export const automator = {
   otherAutomatorPoints: [
     {
       name: "Reality Count",
-      automatorPoints: () => 2 * Math.clampMax(Currency.realities.value, 50),
+      automatorPoints: () => 2 * Decimal.clampMax(Currency.realities.value, 50).mantissa * 
+      (10 ** Decimal.clampMax(Currency.realities.value, 50).exponent),
       shortDescription: () => `+${formatInt(2)} per Reality, up to ${formatInt(50)} Realities`,
       symbol: "Ϟ",
     },
