@@ -70,7 +70,7 @@ export const normalAchievements = [
         : "Buy an 8th Antimatter Dimension.";
     },
     checkEvent: GAME_EVENT.ACHIEVEMENT_EVENT_OTHER,
-    get reward() { return `Multiply all Antimatter Dimensions by Ninty Degrees.`; },
+    get reward() { return `Multiply all Antimatter Dimensions by Ninety Degrees.`; },
     effect: 1.57
   },
   {
@@ -729,7 +729,9 @@ export const normalAchievements = [
     name: "This mile took an eternity",
     description: "Get all Eternity milestones.",
     checkRequirement: () => EternityMilestone.all.every(m => m.isReached),
-    checkEvent: GAME_EVENT.GAME_TICK_AFTER
+    checkEvent: GAME_EVENT.GAME_TICK_AFTER,
+    get reward() { return `Gain ${formatX(2)} more Eternities.`; },
+    effect: 2
   },
   {
     id: 103,
