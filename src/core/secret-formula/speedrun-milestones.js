@@ -193,9 +193,9 @@ export const speedrunMilestones = [
   },
   {
     id: 25,
-    key: "completeFullGame",
-    name: "Game Completed!",
-    description: "Complete the entire game",
+    key: "completeFirstEndgame",
+    name: "First Endgame",
+    description: "Complete your First Endgame",
     checkRequirement: () => Achievement(188).isUnlocked,
     checkEvent: GAME_EVENT.ACHIEVEMENT_UNLOCKED,
   },
