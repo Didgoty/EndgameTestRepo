@@ -398,6 +398,24 @@ export const tabs = [
       },
     ],
   },
+  /*{
+    key: "endgame",
+    name: "Endgame",
+    UIClass: "o-tab-btn--endgame",
+    condition: () => Achievement(188).isUnlocked,
+    id: 11,
+    hidable: true,
+    subtabs: [
+      { 
+        key: "break2",
+        name: "Break Eternity",
+        symbol: ???,
+        component: "BreakEternityTab",
+        id: 0,
+        hidable: true,
+      }
+    ] 
+  },*/
   {
     key: "celestials",
     name: "Celestials",
