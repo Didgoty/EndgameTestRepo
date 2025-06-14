@@ -188,7 +188,6 @@ export const ID = {
       const allMult = DC.D1.timesEffectsOf(
         InfinityChallenge(1).reward,
         InfinityChallenge(7).reward,
-        InfinityChallenge(13).reward,
       );
       return Decimal.pow(allMult, dim ? 1 : MultiplierTabHelper.activeDimCount("ID"));
     },
