@@ -81,6 +81,11 @@ export default {
         icon="fa-solid fa-file-lines"
         show-modal="changelog"
       />
+      <InformationModalButton
+        name="Guide (Unfinished)"
+        icon="fa-solid fa-file-lines"
+        link="https://antimatter-dimensions-endgame.fandom.com/wiki/Guide"
+      />
     </div>
   </div>
 </template>
