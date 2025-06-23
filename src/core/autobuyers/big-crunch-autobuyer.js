@@ -104,7 +104,7 @@ export class BigCrunchAutobuyerState extends UpgradeableAutobuyerState {
   }
 
   get timeToNextTick() {
-    return Math.clampMin(this.time - Time.thisInfinityRealTime.totalSeconds, 0);
+    return Math.clampMin(this.time - Time.thisInfinityRealTime.totalSeconds.toNumber(), 0);
   }
 
   get willInfinity() {
