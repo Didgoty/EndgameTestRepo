@@ -30,7 +30,7 @@ export class AnnihilationAutobuyerState extends AutobuyerState {
   }
 
   get inputType() {
-    return "float";
+    return "decimal";
   }
 
   get inputEntry() {
@@ -38,7 +38,7 @@ export class AnnihilationAutobuyerState extends AutobuyerState {
   }
 
   tick() {
-    if (Laitela.darkMatterMultGain >= this.multiplier) {
+    if (Laitela.darkMatterMultGain.gte(this.multiplier)) {
       Laitela.annihilate();
     }
   }
