@@ -27,6 +27,7 @@ const disabledMechanicUnlocks = {
   glyphs: () => !PelleRifts.vacuum.milestones[0].canBeApplied,
   V: () => ({}),
   singularity: () => ({}),
+  continuum: () => ({}),
   alchemy: () => ({}),
   achievementMult: () => ({}),
   blackhole: () => ({}),
@@ -78,7 +79,7 @@ export const Pelle = {
         ${formatInt(5)} additional Glyphs in order to Doom your Reality.`, 1);
       return;
     }
-    for (const type of BASIC_GLYPH_TYPES) Glyphs.addToInventory(GlyphGenerator.doomedGlyph(type));
+    for (const type of GlyphInfo.basicGlyphTypes) Glyphs.addToInventory(GlyphGenerator.doomedGlyph(type));
     Glyphs.refreshActive();
     player.options.confirmations.glyphReplace = true;
     player.reality.automator.state.repeat = false;
@@ -88,7 +89,7 @@ export const Pelle = {
     Pelle.armageddon(false);
     respecTimeStudies(true);
     Currency.infinityPoints.reset();
-    player.IPMultPurchases = 0;
+    player.IPMultPurchases = DC.D0;
     Autobuyer.bigCrunch.mode = AUTO_CRUNCH_MODE.AMOUNT;
     disChargeAll();
     clearCelestialRuns();
@@ -99,6 +100,7 @@ export const Pelle = {
     // for the group toggle is hidden until they're all re-upgraded to the max again.
     player.auto.antimatterDims.isActive = true;
 
+    player.buyUntil1- = true;
     player.records.realTimeDoomed = 0;
     for (const res of AlchemyResources.all) res.amount = 0;
     AutomatorBackend.stop();
@@ -147,14 +149,14 @@ export const Pelle = {
   },
 
   get canArmageddon() {
-    return this.remnantsGain >= 1;
+    return this.remnantsGain.gte(1);
   },
 
   armageddon(gainStuff) {
     if (!this.canArmageddon && gainStuff) return;
     EventHub.dispatch(GAME_EVENT.ARMAGEDDON_BEFORE, gainStuff);
     if (gainStuff) {
-      this.cel.remnants += this.remnantsGain;
+      this.cel.remnants = this.cel.remnants.add(this.remnantsGain);
     }
     finishProcessReality({ reset: true, armageddon: true });
     disChargeAll();
@@ -262,7 +264,7 @@ export const Pelle = {
   },
 
   get canDilateInPelle() {
-    return this.cel.remnants >= this.remnantRequirementForDilation;
+    return this.cel.remnants.gte(this.remnantRequirementForDilation);
   },
 
   resetResourcesForDilation() {
@@ -283,20 +285,18 @@ export const Pelle = {
     let ep = this.cel.records.totalEternityPoints.plus(1).log10();
 
     if (PelleStrikes.dilation.hasStrike) {
-      am *= 500;
-      ip *= 10;
-      ep *= 5;
+      am = am.times(500);
+      ip = ip.times(10);
+      ep = ep.times(5);
     }
 
-    const gain = (
-      (Math.log10(am + 2) + Math.log10(ip + 2) + Math.log10(ep + 2)) / 1.7
-    ) ** 8;
+    const gain = am.add(2).log10().add(ip.add(2).log10()).add(ep.add(2).log10()).div(1.7).pow(8);
 
-    return gain < 1 ? gain : Math.floor(gain - this.cel.remnants);
+    return gain.lt(1) ? gain : Decimal.floor(gain.minus(this.cel.remnants));
   },
 
   realityShardGain(remnants) {
-    return Decimal.pow(10, remnants ** (1 / 8) * 4).minus(1).div(1e3);
+    return Decimal.pow(10, Decimal.pow(remnants, (1 / 8)).times(4)).minus(1).div(1e3);
   },
 
   get realityShardGainPerSecond() {
@@ -317,11 +317,11 @@ export const Pelle = {
   },
 
   get glyphStrength() {
-    return 1;
+    return DC.D1;
   },
 
   antimatterDimensionMult(x) {
-    return Decimal.pow(10, Math.log10(x + 1) + x ** 5.4 / 1e3 + 4.2 ** x / 1e18);
+    return Decimal.pow(10, Decimal.log10(x.add(1)).add(x.pow(5.4).div(1e3)).add((DC.D4.add(0.2)).pow(x).div(1e18)));
   },
 
   get activeGlyphType() {
@@ -355,6 +355,75 @@ export const Pelle = {
   endTabNames: "It's Not Over We Will Return We'll Soon Meet Again".split(" "),
 
   quotes: Quotes.pelle,
+
+  reset() {
+    player.celestials.pelle = {
+      doomed: false,
+      upgrades: new Set(),
+      remnants: DC.D0,
+      realityShards: DC.D0,
+      records: {
+        totalAntimatter: DC.D0,
+        totalInfinityPoints: DC.D0,
+        totalEternityPoints: DC.D0,
+      },
+      rebuyables: {
+        antimatterDimensionMult: DC.D0,
+        timeSpeedMult: DC.D0,
+        glyphLevels: DC.D0,
+        infConversion: DC.D0,
+        galaxyPower: DC.D0,
+        galaxyGeneratorAdditive: DC.D0,
+        galaxyGeneratorMultiplicative: DC.D0,
+        galaxyGeneratorAntimatterMult: DC.D0,
+        galaxyGeneratorIPMult: DC.D0,
+        galaxyGeneratorEPMult: DC.D0,
+      },
+      rifts: {
+        vacuum: {
+          fill: DC.D0,
+          active: false,
+          reducedTo: 1
+        },
+        decay: {
+          fill: DC.D0,
+          active: false,
+          percentageSpent: 0,
+          reducedTo: 1
+        },
+        chaos: {
+          fill: 0,
+          active: false,
+          reducedTo: 1
+        },
+        recursion: {
+          fill: DC.D0,
+          active: false,
+          reducedTo: 1
+        },
+        paradox: {
+          fill: DC.D0,
+          active: false,
+          reducedTo: 1
+        }
+      },
+      progressBits: 0,
+      galaxyGenerator: {
+        unlocked: false,
+        spentGalaxies: DC.D0,
+        generatedGalaxies: DC.D0,
+        phase: 0,
+        sacrificeActive: false
+      },
+      quoteBits: 0,
+      collapsed: {
+        upgrades: false,
+        rifts: false,
+        galaxies: false
+      },
+      showBought: false,
+    };
+  },
 };
 
 EventHub.logic.on(GAME_EVENT.ARMAGEDDON_AFTER, () => {
@@ -394,7 +463,7 @@ export class RebuyablePelleUpgradeState extends RebuyableMechanicState {
   }
 
   get isCapped() {
-    return this.boughtAmount >= this.config.cap;
+    return this.boughtAmount.gte(this.config.cap);
   }
 
   get isCustomEffect() { return true; }
