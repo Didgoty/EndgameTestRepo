@@ -53,12 +53,12 @@ export const Effarig = {
   get glyphLevelCap() {
     switch (this.currentStage) {
       case EFFARIG_STAGES.INFINITY:
-        return 100;
+        return new Decimal(DC.E2);
       case EFFARIG_STAGES.ETERNITY:
-        return 1500;
+        return new Decimal(1500);
       case EFFARIG_STAGES.REALITY:
       default:
-        return 2000;
+        return new Decimal(2000);
     }
   },
   get glyphEffectAmount() {
@@ -70,13 +70,13 @@ export const Effarig = {
       .reduce((prev, curr) => prev | curr.effects, 0);
     return countValuesFromBitmask(genEffectBitmask) + countValuesFromBitmask(nongenEffectBitmask);
   },
-  get shardsGained() {
-    if (!TeresaUnlocks.effarig.canBeApplied) return 0;
-    return Math.floor(Math.pow(Currency.eternityPoints.exponent / 7500, this.glyphEffectAmount)) *
-      AlchemyResource.effarig.effectValue;
+get shardsGained() {
+    if (!TeresaUnlocks.effarig.canBeApplied) return DC.D0;
+    return Decimal.floor(Decimal.pow(Currency.eternityPoints.value.add(1).log10().div(7500),
+      getActiveGlyphEffects().length)).times(AlchemyResource.effarig.effectValue);
   },
   get maxRarityBoost() {
-    return 15 * (Math.pow(Math.log10(Math.log10(Currency.relicShards.value + 10)) + 1, 1.5) - 1);
+    return (Decimal.pow(Decimal.log10(Decimal.log10(Currency.relicShards.value.add(10))).add(1), 1.5).sub(1)).mul(15);
   },
   nerfFactor(power) {
     let c;
@@ -92,28 +92,39 @@ export const Effarig = {
         c = 25;
         break;
     }
-    return 3 * (1 - c / (c + Math.sqrt(power.pLog10())));
+    return (DC.D1.sub(new Decimal(c).div(Decimal.sqrt(power.add(1).absLog10()).add(c)))).times(3);
   },
   get tickDilation() {
-    return 0.7 + 0.1 * this.nerfFactor(Currency.timeShards.value);
+    return this.nerfFactor(Currency.timeShards.value).div(10).add(0.7);
   },
   get multDilation() {
-    return 0.25 + 0.25 * this.nerfFactor(Currency.infinityPower.value);
+    return this.nerfFactor(Currency.infinityPower.value).div(4).add(0.25);
   },
   get tickspeed() {
-    const base = 3 + Tickspeed.baseValue.reciprocal().log10();
+    const base = Tickspeed.baseValue.reciprocal().log10().add(3);
     return Decimal.pow10(Math.pow(base, this.tickDilation)).reciprocal();
   },
   multiplier(mult) {
-    const base = new Decimal(mult).pLog10();
-    return Decimal.pow10(Math.pow(base, this.multDilation));
+    const base = new Decimal(mult).add(1).absLog10();
+    return Decimal.pow10(Decimal.pow(base, this.multDilation));
   },
   get bonusRG() {
     // Will return 0 if Effarig Infinity is uncompleted
-    return Math.floor(replicantiCap().pLog10() / LOG10_MAX_VALUE - 1);
+    return Math.floor(replicantiCap().pLog10() / LOG10_MAX_VALUE.sub(1));
   },
   quotes: Quotes.effarig,
   symbol: "Ϙ"
+
+   reset() {
+    player.celestials.effarig.relicShards = DC.D0;
+    player.celestials.effarig.unlockBits = 0;
+    player.celestials.effarig.run = false;
+    player.celestials.effarig.glyphWeights.ep = 25;
+    player.celestials.effarig.glyphWeights.repl = 25;
+    player.celestials.effarig.glyphWeights.dt = 25;
+    player.celestials.effarig.glyphWeights.eternities = 25;
+    player.celestials.effarig.autoAdjustGlyphWeights = false;
+  },
 };
 
 class EffarigUnlockState extends BitUpgradeState {
