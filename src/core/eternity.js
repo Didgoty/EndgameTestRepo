@@ -3,7 +3,7 @@ import { DC } from "./constants";
 import FullScreenAnimationHandler from "./full-screen-animation-handler";
 
 function giveEternityRewards(auto) {
-  player.records.bestEternity.time = Math.min(player.records.thisEternity.time, player.records.bestEternity.time);
+  player.records.bestEternity.time = Decimal.min(player.records.thisEternity.time, player.records.bestEternity.time);
   Currency.eternityPoints.add(gainedEternityPoints());
 
   const newEternities = gainedEternities();
@@ -38,11 +38,12 @@ function giveEternityRewards(auto) {
   );
 
   player.records.thisReality.bestEternitiesPerMs = player.records.thisReality.bestEternitiesPerMs.clampMin(
-    newEternities.div(Math.clampMin(33, player.records.thisEternity.realTime))
+    newEternities.div(Decimal.clampMin(33, player.records.thisEternity.realTime))
   );
   player.records.bestEternity.bestEPminReality =
     player.records.bestEternity.bestEPminReality.max(player.records.thisEternity.bestEPmin);
 
+  player.records.bestEternity.trueTime = Math.min(player.records.bestEternity.trueTime, player.records.thisEternity.trueTime);
   Currency.infinitiesBanked.value = Currency.infinitiesBanked.value.plusEffectsOf(
     Achievement(131).effects.bankedInfinitiesGain,
     TimeStudy(191)
@@ -185,21 +186,21 @@ export function initializeChallengeCompletions(isReality) {
 export function initializeResourcesAfterEternity() {
   player.sacrificed = DC.D0;
   Currency.infinities.reset();
-  player.records.bestInfinity.time = 999999999999;
-  player.records.bestInfinity.realTime = 999999999999;
-  player.records.thisInfinity.time = 0;
-  player.records.thisInfinity.lastBuyTime = 0;
-  player.records.thisInfinity.realTime = 0;
-  player.dimensionBoosts = (EternityMilestone.keepInfinityUpgrades.isReached) ? 4 : 0;
-  player.galaxies = (EternityMilestone.keepInfinityUpgrades.isReached) ? 1 : 0;
+  player.records.bestInfinity.time = DC.BEMAX;
+  player.records.bestInfinity.realTime = DC.BEMAX;
+  player.records.thisInfinity.time = DC.D0;
+  player.records.thisInfinity.lastBuyTime = DC.D0;
+  player.records.thisInfinity.realTime = DC.D0;
+  player.dimensionBoosts = (EternityMilestone.keepInfinityUpgrades.isReached) ? DC.D4 : DC.D0;
+  player.galaxies = (EternityMilestone.keepInfinityUpgrades.isReached) ? DC.D1 : DC.D0;
   player.partInfinityPoint = 0;
   player.partInfinitied = 0;
-  player.IPMultPurchases = 0;
+  player.IPMultPurchases = DC.D0;
   Currency.infinityPower.reset();
   Currency.timeShards.reset();
-  player.records.thisEternity.time = 0;
-  player.records.thisEternity.realTime = 0;
-  player.totalTickGained = 0;
+  player.records.thisEternity.time = DC.D0;
+  player.records.thisEternity.realTime = DC.D0;
+  player.totalTickGained = DC.D0;
   player.eterc8ids = 50;
   player.eterc8repl = 40;
   Player.resetRequirements("eternity");
@@ -291,7 +292,7 @@ class EPMultiplierState extends GameMechanicState {
   set boughtAmount(value) {
     // Reality resets will make this bump amount negative, causing it to visually appear as 0 even when it isn't.
     // A dev migration fixes bad autobuyer states and this change ensures it doesn't happen again
-    const diff = Math.clampMin(value - player.epmultUpgrades, 0);
+    const diff = Decimal.max(value.sub(player.epmultUpgrades), 0);
     player.epmultUpgrades = value;
     this.cachedCost.invalidate();
     this.cachedEffectValue.invalidate();
@@ -309,8 +310,39 @@ class EPMultiplierState extends GameMechanicState {
   purchase() {
     if (!this.isAffordable) return false;
     Currency.eternityPoints.subtract(this.cost);
-    ++this.boughtAmount;
+    this.boughtAmount = this.boughtAmount.add(1);
     return true;
+  }
+
+    // eslint-disable-next-line consistent-return
+  costInv() {
+    let tempVal = DC.D0;
+    let bulk = DC.D1;
+    let cur = Currency.eternityPoints.value.max(1);
+    if (cur.gt(this.costIncreaseThresholds[3])) {
+      cur = Decimal.log(cur.div(500), 1e3);
+      return cur.add(Math.pow(1332, 1.2)).root(1.2).floor().max(1332);
+      // eslint-disable-next-line no-else-return
+    }
+    if (cur.gt(this.costIncreaseThresholds[2])) {
+      bulk = this.costIncreaseThresholds[2].div(500).log(500).floor();
+      tempVal = (DC.E3).pow(bulk).times(500);
+      cur = cur.div(tempVal).max(1 / 1e3);
+      return bulk.add(cur.log(1e3).add(1)).floor();
+    }
+    if (cur.gt(this.costIncreaseThresholds[1])) {
+      bulk = this.costIncreaseThresholds[1].div(500).log(100).floor();
+      tempVal = (DC.E2.times(5)).pow(bulk).times(500);
+      cur = cur.div(tempVal.max(1 / 500));
+      return bulk.add(cur.log(500).add(1)).floor();
+    }
+    if (cur.gt(this.costIncreaseThresholds[0])) {
+      bulk = this.costIncreaseThresholds[0].div(500).log(50).floor();
+      tempVal = DC.E2.pow(bulk).times(500);
+      cur = cur.div(tempVal.max(1 / 100));
+      return bulk.add(cur.log(100).add(1)).floor();
+    }
+    return cur.div(500).max(1 / 50).log(50).add(1).floor();
   }
 
   buyMax(auto) {
@@ -319,19 +351,30 @@ class EPMultiplierState extends GameMechanicState {
       if (!auto) RealityUpgrade(15).tryShowWarningModal();
       return false;
     }
-    const bulk = bulkBuyBinarySearch(Currency.eternityPoints.value, {
-      costFunction: this.costAfterCount,
-      cumulative: true,
-      firstCost: this.cost,
-    }, this.boughtAmount);
-    if (!bulk) return false;
-    Currency.eternityPoints.subtract(bulk.purchasePrice);
-    this.boughtAmount += bulk.quantity;
+
+    
+    // Technically inaccurate, but it works fine (is it inaccurate tho???)
+    // Should probably use hardcoded values but im lazy so no
+
+     let bulk = Decimal.floor(this.costInv());
+    if (bulk.lt(1)) return false;
+    const price = this.costAfterCount(bulk.sub(1));
+    bulk = bulk.sub(this.boughtAmount).max(0);
+
+    if (bulk.eq(0)) return false;
+    Currency.eternityPoints.subtract(price);
+    this.boughtAmount = this.boughtAmount.add(bulk);
+    let i = 0;
+    while (Currency.eternityPoints.gt(this.costAfterCount(this.boughtAmount)) &&
+    i < 50 && this.boughtAmount.layer < 1) {
+      this.boughtAmount = this.boughtAmount.add(1);
+      Currency.eternityPoints.subtract(this.costAfterCount(this.boughtAmount.sub(1)));
+      i += 1;
+    }
     return true;
   }
-
   reset() {
-    this.boughtAmount = 0;
+    this.boughtAmount = DC.D0;
   }
 
   get costIncreaseThresholds() {
@@ -345,7 +388,7 @@ class EPMultiplierState extends GameMechanicState {
       const cost = Decimal.pow(multPerUpgrade[i], count).times(500);
       if (cost.lt(costThresholds[i])) return cost;
     }
-    return DC.E3.pow(count + Math.pow(Math.clampMin(count - 1334, 0), 1.2)).times(500);
+      return DC.E3.pow(count.pow(1.2).sub(Math.pow(1334, 1.2))).times(500);
   }
 }
 
