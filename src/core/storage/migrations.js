@@ -1,4 +1,6 @@
+import { beMigration } from "./be-migrations";
 import { deepmergeAll } from "@/utility/deepmerge";
+
 
 // WARNING: Don't use state accessors and functions from global scope here, that's not safe in long-term
 export const migrations = {
@@ -289,8 +291,8 @@ export const migrations = {
       const reducedFilter = {};
       const effectDB = Object.values(GameDatabase.reality.glyphEffects);
       // The previous filter format had entries for companion/reality/cursed glyphs, which are removed by only copying
-      // the types in ALCHEMY_BASIC_GLYPH_TYPES. Any errors which show up elsewhere for have also been resolved
-      for (const type of ALCHEMY_BASIC_GLYPH_TYPES) {
+      // the types in GlyphInfo.alchemyGlyphTypes. Any errors which show up elsewhere for have also been resolved
+      for (const type of GlyphInfo.alchemyGlyphTypes) {
         const oldData = effarig.glyphScoreSettings?.types[type];
         const typeEffects = effectDB
           .filter(t => t.glyphTypes.includes(type))
@@ -329,7 +331,8 @@ export const migrations = {
       // will have some slightly weird saves. We don't need to modify the glyph filter settings here because these are
       // migrated above by their effect keys; this properly places them into the correct bit positions automatically
       const updateBitmask = bitmask => {
-        const modifiedBits = [20, 21, 22].map(b => 1 << b).sum();
+        if (bitmask instanceof Array) return bitmask;
+        const modifiedBits = [20, 21, 22].map(b => 1 << b).nSum();
         const foundBits = [20, 21, 22].map(b => (bitmask & (1 << b)) !== 0);
         foundBits.push(foundBits.shift());
         let newSubmask = 0;
@@ -419,7 +422,15 @@ export const migrations = {
 
       // This update has a rebalance that assumes the 3rd dilation repeatable is unpurchasable in cel7
       if (player.celestials.pelle.doomed) player.dilation.rebuyables[3] = 0;
-    }
+    },
+    26: player => {
+      delete player.infinity?.upgradeBits;
+    },
+    // 83 is used because 8 = B, and 3 = E, so 83 = BE, short for BE port (blob edition).
+    // Recommended to start any modded migrations at 100.
+    83: player => {
+      beMigration(player);
+    },
   },
 
   normalizeTimespans(player) {
@@ -868,7 +879,7 @@ export const migrations = {
           autobuyer.amount = condition;
           break;
         case "time":
-          autobuyer.time = condition.lt(Decimal.NUMBER_MAX_VALUE) ? condition.toNumber() : autobuyer.time;
+          autobuyer.time = condition.lt(DC.NUMMAX) ? condition.toNumber() : autobuyer.time;
           break;
         case "relative":
           autobuyer.xHighest = condition;
@@ -980,7 +991,7 @@ export const migrations = {
         newAchievements[row - 1] |= (1 << (column - 1));
       }
       // Handle the changed achievement "No DLC Required" correctly (otherwise saves could miss it).
-      if (!isSecret && (player.infinityUpgrades.size >= 16 || player.eternities.gt(0) || player.realities > 0)) {
+      if (!isSecret && (player.infinityUpgrades.size >= 16 || player.eternities.gt(0) || player.realities.gt(0))) {
         newAchievements[3] |= 1;
       } else {
         newAchievements[3] &= ~1;
@@ -1007,7 +1018,7 @@ export const migrations = {
   },
 
   setTutorialState(player) {
-    if (player.infinities.gt(0) || player.eternities.gt(0) || player.realities > 0 || player.galaxies > 0) {
+    if (player.infinities.gt(0) || player.eternities.gt(0) || player.realities.gt(0) || player.galaxies > 0) {
       player.tutorialState = 4;
     } else if (player.dimensionBoosts > 0) player.tutorialState = TUTORIAL_STATE.GALAXY;
   },
@@ -1098,7 +1109,7 @@ export const migrations = {
 
   migratePlayerVars(player) {
     player.replicanti.boughtGalaxyCap = player.replicanti.gal;
-    player.dilation.totalTachyonGalaxies = player.dilation.freeGalaxies;
+    player.dilation.totalTachyonGalaxies = new Decimal(player.dilation.freeGalaxies);
 
     delete player.replicanti.gal;
     delete player.dilation.freeGalaxies;
@@ -1238,6 +1249,6 @@ export const migrations = {
 
   patchPostReality(saveData) {
     // Plus 1 because this the threshold is exclusive (it migrates up to but not including the maxVersion)
-    return this.patch(saveData, Object.keys(migrations.patches).map(k => Number(k)).max() + 1);
+    return this.patch(saveData, Object.keys(migrations.patches).map(k => Number(k)).nMax() + 1);
   }
 };
