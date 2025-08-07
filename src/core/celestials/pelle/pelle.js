@@ -100,7 +100,7 @@ export const Pelle = {
     // for the group toggle is hidden until they're all re-upgraded to the max again.
     player.auto.antimatterDims.isActive = true;
 
-    player.buyUntil1- = true;
+    player.buyUntil1 -= true;
     player.records.realTimeDoomed = 0;
     for (const res of AlchemyResources.all) res.amount = 0;
     AutomatorBackend.stop();
