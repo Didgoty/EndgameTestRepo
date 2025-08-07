@@ -113,7 +113,7 @@ get shardsGained() {
     return Math.floor(replicantiCap().pLog10() / LOG10_MAX_VALUE.sub(1));
   },
   quotes: Quotes.effarig,
-  symbol: "Ϙ"
+  symbol: "Ϙ",
 
    reset() {
     player.celestials.effarig.relicShards = DC.D0;
