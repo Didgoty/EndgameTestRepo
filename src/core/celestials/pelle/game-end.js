@@ -33,7 +33,7 @@ export const GameEnd = {
   creditsClosed: false,
   creditsEverClosed: false,
 
-  gameLoop(diff) {
+  gameLoop(diffr) {
     const diff = isDecimal(diffr) ? diffr.toNumber() : diffr;
     if (this.removeAdditionalEnd) {
       this.additionalEnd -= Math.min(diff / 200, 0.5);
