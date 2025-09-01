@@ -100,7 +100,7 @@ export const Pelle = {
     // for the group toggle is hidden until they're all re-upgraded to the max again.
     player.auto.antimatterDims.isActive = true;
 
-    player.buyUntil1 -= true;
+    player.buyUntil10 = true;
     player.records.realTimeDoomed = 0;
     for (const res of AlchemyResources.all) res.amount = 0;
     AutomatorBackend.stop();
@@ -182,8 +182,8 @@ export const Pelle = {
   },
 
   get disabledAchievements() {
-    return [164, 156, 143, 142, 141, 137, 134, 133, 132, 131, 125, 118, 117, 116, 113, 111, 104, 103, 95, 93, 92,
-      91, 87, 85, 81, 78, 76, 74, 65, 55, 54, 37];
+    return [164, 156, 143, 142, 141, 137, 134, 133, 132, 131, 126, 125, 118, 117, 116, 113, 111, 104, 103, 95, 93, 92,
+      91, 87, 85, 78, 76, 74, 65, 55, 54, 37];
   },
 
   get uselessInfinityUpgrades() {
@@ -217,7 +217,7 @@ export const Pelle = {
         ? Currency.eternityPoints.value.plus(1).pow(0.3)
         : DC.D1,
       replication: isActive("replication")
-        ? 10 ** 60 ** (PelleRifts.vacuum.percentage)
+        ? 10 ** 53 ** (PelleRifts.vacuum.percentage)
         : 1,
       dilation: isActive("dilation")
         ? Decimal.pow(player.dilation.totalTachyonGalaxies, 1.5).max(1)
@@ -290,13 +290,13 @@ export const Pelle = {
       ep = ep.times(5);
     }
 
-    const gain = am.add(2).log10().add(ip.add(2).log10()).add(ep.add(2).log10()).div(1.7).pow(8);
+    const gain = am.add(2).log10().add(ip.add(2).log10()).add(ep.add(2).log10()).div(1.64).pow(7.5);
 
     return gain.lt(1) ? gain : Decimal.floor(gain.minus(this.cel.remnants));
   },
 
   realityShardGain(remnants) {
-    return Decimal.pow(10, Decimal.pow(remnants, (1 / 8)).times(4)).minus(1).div(1e3);
+    return Decimal.pow(10, Decimal.pow(remnants, (1 / 7.5)).times(4)).minus(1).div(1e3);
   },
 
   get realityShardGainPerSecond() {
@@ -304,12 +304,12 @@ export const Pelle = {
   },
 
   get nextRealityShardGain() {
-    return this.realityShardGain(this.remnantsGain + this.cel.remnants);
+    return this.realityShardGain(this.remnantsGain.add(this.cel.remnants));
   },
 
   // Calculations assume this is in units of proportion per second (eg. 0.03 is 3% drain per second)
   get riftDrainPercent() {
-    return 0.05;
+    return 0.03;
   },
 
   get glyphMaxLevel() {
@@ -321,7 +321,7 @@ export const Pelle = {
   },
 
   antimatterDimensionMult(x) {
-    return Decimal.pow(10, Decimal.log10(x.add(1)).add(x.pow(5.4).div(1e3)).add((DC.D4.add(0.2)).pow(x).div(1e18)));
+    return Decimal.pow(10, Decimal.log10(x.add(1)).add(x.pow(5.1).div(1e3)).add(DC.D4.pow(x).div(1e19)));
   },
 
   get activeGlyphType() {
@@ -352,7 +352,7 @@ export const Pelle = {
     return zalgo(str, Math.floor(stage ** 2 * 7));
   },
 
-  endTabNames: "It's Not Over We Will Return We'll Soon Meet Again".split(" "),
+  endTabNames: "End Is Nigh Destruction Is Imminent Help Us Good Bye Forever".split(" "),
 
   quotes: Quotes.pelle,
 
@@ -510,5 +510,4 @@ export const PelleUpgrade = mapGameDataToObject(
 );
 
 PelleUpgrade.rebuyables = PelleUpgrade.all.filter(u => u.isRebuyable);
-// An upgrade was added post-release; it's simpler to just sort them by cost rather than to migrate the internal data
 PelleUpgrade.singles = PelleUpgrade.all.filter(u => !u.isRebuyable).sort((a, b) => a.cost - b.cost);
