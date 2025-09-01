@@ -1,3 +1,5 @@
+import { isDecimal } from "../../../utility/type-check";
+
 export const END_STATE_MARKERS = {
   // Tab zalgoification starts as soon as endState > 0
   GAME_END: 1,
@@ -7,19 +9,20 @@ export const END_STATE_MARKERS = {
   SAVE_DISABLED: 4,
   END_NUMBERS: 4.2,
   CREDITS_START: 4.5,
-  SHOW_NEW_GAME: 15.5,
-  SPECTATE_GAME: 15.9,
-  // The song is 4:27 and the credits increment by 1 every 20 seconds. Needs changing if the song is changed.
-  SONG_END: 17.9,
-  CREDITS_END: 160,
+  SHOW_NEW_GAME: 13.5,
+  SPECTATE_GAME: 13.9,
+  // The song is 3:04 and the credits increment by 1 every 20 seconds. Needs changing if the song is changed.
+  SONG_END: 13.7,
+  CREDITS_END: 14.5,
 };
 
 export const GameEnd = {
   get endState() {
-    if (this.removeAdditionalEnd) return this.additionalEnd;
+    if (this.removeAdditionalEnd || player.bypassEnd) return this.additionalEnd;
     return Math.max(player.celestials.pelle.records.totalAntimatter.add(1).log10().add(1).log10().sub(8.7)
       .div(Math.log10(9e15) - 8.7).min(1).toNumber() + this.additionalEnd, 0);
   },
+
   _additionalEnd: 0,
   get additionalEnd() {
     return (player.isGameEnd || this.removeAdditionalEnd) ? this._additionalEnd : 0;
