@@ -8,7 +8,7 @@ export default {
   },
   methods: {
     returnedSTDCount() {
-      let std = 0;
+      let std = new Decimal();
       for (const purchase of ShopPurchase.all) {
         if (purchase.config.instantPurchase) continue;
         std += purchase.purchases * purchase.cost;
